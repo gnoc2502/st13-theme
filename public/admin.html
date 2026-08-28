@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Theme Admin</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --panel: #ffffff;
+    --sidebar: #ffffff;
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #a8a8ad;
+    --border: #ececee;
+    --border-strong: #d2d2d7;
+    --primary: #0071e3;
+    --primary-hover: #0077ed;
+    --primary-soft: #e6f0fc;
+    --danger: #ff3b30;
+    --danger-soft: #ffe5e3;
+    --success: #34c759;
+    --success-soft: #d5f2df;
+    --warning: #ff9500;
+    --warning-soft: #fff0d9;
+    --purple: #af52de;
+    --purple-soft: #f2e5fb;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
+  /* ============ Layout ============ */
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 12px;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px 20px;
+    font-weight: 700; font-size: 15px;
+  }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #0071e3, #af52de);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+  }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: var(--radius);
+    color: var(--text-2); text-decoration: none;
+    font-size: 13.5px; font-weight: 500;
+    border: 0; background: transparent; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--primary-soft); color: var(--primary); }
+  .nav-item .count {
+    margin-left: auto;
+    background: var(--bg); color: var(--text-2);
+    font-size: 11px; padding: 2px 7px; border-radius: 10px;
+    min-width: 20px; text-align: center;
+  }
+  .nav-item.active .count { background: rgba(0,113,227,0.15); color: var(--primary); }
+  .nav-section {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3); font-weight: 600;
+    padding: 20px 12px 6px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  .user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #0071e3, #af52de);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-role { font-size: 11px; color: var(--text-2); }
+  .icon-btn {
+    background: transparent; border: 0; padding: 6px; border-radius: 6px;
+    color: var(--text-2); display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { background: var(--bg); color: var(--text); }
+
+  /* ============ Main ============ */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  .topbar .sub { color: var(--text-2); font-size: 13px; margin-left: 8px; }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  .content { padding: 24px 32px 60px; }
+
+  .toolbar {
+    display: flex; gap: 8px; margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1; min-width: 220px;
+    background: var(--panel); border: 1px solid var(--border-strong); border-radius: var(--radius);
+    padding: 8px 12px 8px 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 10px center;
+  }
+  .search-input:focus { outline: 2px solid var(--primary-soft); border-color: var(--primary); }
+  .filter-pills { display: flex; gap: 4px; }
+  .filter-pill {
+    background: var(--panel); border: 1px solid var(--border-strong); border-radius: var(--radius);
+    padding: 8px 12px; font-size: 13px; color: var(--text-2);
+  }
+  .filter-pill.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .select {
+    background: var(--panel); border: 1px solid var(--border-strong); border-radius: var(--radius);
+    padding: 8px 30px 8px 12px; font-size: 13px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+
+  /* ============ Buttons ============ */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: var(--radius);
+    border: 1px solid transparent; background: transparent;
+    font-size: 13px; font-weight: 600;
+    transition: 0.12s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary { background: var(--panel); border-color: var(--border-strong); color: var(--text); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #e0342a; }
+  .btn-ghost { color: var(--text-2); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn[disabled] { opacity: 0.5; pointer-events: none; }
+  .btn .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ Table ============ */
+  .table-card {
+    background: var(--panel); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #fafafb;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px; font-weight: 600; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th:first-child { border-top-left-radius: var(--radius-lg); }
+  thead th:last-child  { border-top-right-radius: var(--radius-lg); }
+  tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: #fafafb; }
+  .thumb-cell { width: 52px; }
+  .thumb {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--bg), #eaeaec);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 10px; font-weight: 600;
+    object-fit: cover; overflow: hidden;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .cell-name { font-weight: 600; }
+  .cell-id { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--text-2); }
+  .cell-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .cell-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--text-2); }
+
+  /* ============ Chips / pills ============ */
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 12px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .chip-btn { border: 0; cursor: pointer; }
+  .chip-free { background: var(--success-soft); color: #0f5132; }
+  .chip-paid { background: var(--warning-soft); color: #7c5300; }
+  .chip-published { background: var(--success-soft); color: #0f5132; }
+  .chip-draft { background: var(--bg); color: var(--text-2); }
+  .chip-unpublished { background: var(--danger-soft); color: #842029; }
+  .chip-trash { background: var(--danger-soft); color: #842029; }
+
+  .status-select {
+    background: transparent; border: 1px solid var(--border);
+    padding: 4px 24px 4px 8px; border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 6px center;
+  }
+
+  .order-input {
+    width: 62px; padding: 4px 8px; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 6px;
+    text-align: center;
+  }
+
+  /* ============ Row actions dropdown ============ */
+  .row-actions { position: relative; }
+  .row-actions-btn {
+    background: transparent; border: 0; padding: 6px 8px; border-radius: 6px;
+    color: var(--text-2); font-size: 16px; line-height: 1;
+  }
+  .row-actions-btn:hover { background: var(--bg); color: var(--text); }
+  .row-menu {
+    position: absolute; right: 0; top: 100%;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
+    min-width: 200px; padding: 4px;
+    z-index: 20; margin-top: 4px;
+    display: none;
+  }
+  .row-menu.open { display: block; }
+  .row-menu button {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; text-align: left;
+    padding: 8px 10px; border: 0; background: transparent;
+    border-radius: 6px; font-size: 13px; color: var(--text);
+  }
+  .row-menu button:hover { background: var(--bg); }
+  .row-menu button.danger { color: var(--danger); }
+  .row-menu button.danger:hover { background: var(--danger-soft); }
+  .row-menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 0; }
+  .row-menu svg { width: 14px; height: 14px; opacity: 0.65; }
+
+  /* ============ Empty state ============ */
+  .empty {
+    text-align: center; padding: 80px 20px;
+    background: var(--panel); border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+  .empty-icon {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    border-radius: 50%; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3);
+  }
+  .empty h3 { margin: 0 0 6px; font-size: 16px; }
+  .empty p { margin: 0 0 20px; color: var(--text-2); font-size: 13px; }
+
+  /* ============ Loading skeleton ============ */
+  .skeleton-row td { position: relative; }
+  .skel {
+    display: inline-block; height: 12px; border-radius: 4px;
+    background: linear-gradient(90deg, #ececee 0%, #f7f7f8 50%, #ececee 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s linear infinite;
+  }
+  .skel.wide { width: 120px; }
+  .skel.narrow { width: 40px; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ============ Modal ============ */
+  .backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+    animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .modal {
+    background: var(--panel); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%; max-width: 560px; max-height: 90vh;
+    display: flex; flex-direction: column;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .modal-header {
+    padding: 20px 24px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 { margin: 0; font-size: 17px; font-weight: 700; }
+  .modal-header p { margin: 4px 0 0; font-size: 13px; color: var(--text-2); }
+  .modal-body {
+    padding: 8px 24px 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-field { margin-bottom: 14px; }
+  .form-field label {
+    display: block; font-size: 12px; color: var(--text-2);
+    font-weight: 500; margin-bottom: 6px;
+  }
+  .form-field input[type="text"], .form-field input[type="number"], .form-field select {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    font-size: 14px;
+  }
+  .form-field input[type="text"]:focus, .form-field input[type="number"]:focus, .form-field select:focus {
+    outline: 2px solid var(--primary-soft); border-color: var(--primary);
+  }
+  .form-field .locked {
+    background: var(--bg); color: var(--text-2);
+    cursor: not-allowed;
+  }
+  .form-field .hint { display: block; font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+  .file-drop {
+    border: 2px dashed var(--border-strong); border-radius: var(--radius);
+    padding: 20px; text-align: center;
+    background: var(--bg); cursor: pointer;
+    transition: 0.15s;
+  }
+  .file-drop:hover { border-color: var(--primary); background: var(--primary-soft); }
+  .file-drop.has-file { border-style: solid; border-color: var(--success); background: var(--success-soft); }
+  .file-drop svg { width: 28px; height: 28px; color: var(--text-2); margin-bottom: 6px; }
+  .file-drop .name { font-size: 13px; font-weight: 600; }
+  .file-drop .meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .file-drop input { display: none; }
+
+  .progress { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-top: 8px; display: none; }
+  .progress.active { display: block; }
+  .progress-bar {
+    height: 100%; background: var(--primary);
+    width: 0; transition: width 0.15s ease;
+  }
+
+  /* ============ Toast ============ */
+  .toasts {
+    position: fixed; top: 20px; right: 20px; z-index: 200;
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
+    padding: 12px 16px; min-width: 280px; max-width: 400px;
+    display: flex; align-items: flex-start; gap: 10px;
+    pointer-events: auto;
+    animation: toastIn 0.2s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .toast.out { animation: toastOut 0.2s ease forwards; }
+  @keyframes toastOut {
+    to { opacity: 0; transform: translateX(20px); }
+  }
+  .toast-icon {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 700;
+  }
+  .toast-success .toast-icon { background: var(--success); }
+  .toast-error .toast-icon { background: var(--danger); }
+  .toast-info .toast-icon { background: var(--primary); }
+  .toast-body { flex: 1; font-size: 13px; }
+  .toast-title { font-weight: 600; }
+  .toast-desc { color: var(--text-2); margin-top: 2px; word-break: break-all; }
+
+  /* ============ Manifest debug ============ */
+  .manifest-card {
+    background: var(--panel); border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 20px; margin-top: 24px;
+  }
+  .manifest-card h3 {
+    margin: 0 0 12px; font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .manifest-card pre {
+    background: #1d1d1f; color: #f5f5f7;
+    padding: 14px; border-radius: var(--radius);
+    font-size: 12px; overflow-x: auto; max-height: 360px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">🎨</div>
+      <span>Theme Admin</span>
+    </div>
+
+    <nav class="nav" id="nav"></nav>
+
+    <div class="sidebar-footer">
+      <div class="user">
+        <div class="avatar" id="avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="whoami">…</div>
+          <div class="user-role">Admin</div>
+        </div>
+        <button class="icon-btn" title="Đăng xuất" onclick="logout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1 id="view-title">Themes</h1>
+      <span class="sub" id="view-sub"></span>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="refresh()" title="Reload">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh
+        </button>
+        <button class="btn btn-primary" onclick="openUploadModal()" id="upload-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Upload theme
+        </button>
+      </div>
+    </header>
+
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div id="modal-root"></div>
+
+<script>
+// ============ Utils ============
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+function fmtBytes(n) {
+  n = Number(n) || 0;
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function fmtDate(v) {
+  if (!v) return '—';
+  const d = new Date(v);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60_000) return 'vừa xong';
+  if (diff < 3600_000) return Math.floor(diff / 60_000) + ' phút trước';
+  if (diff < 86400_000) return Math.floor(diff / 3600_000) + ' giờ trước';
+  return d.toLocaleDateString('vi', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function slugify(s) {
+  return String(s || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+// ============ Auth wrapper ============
+const _fetch = window.fetch;
+window.fetch = async (...args) => {
+  const res = await _fetch(...args);
+  if (res.status === 401 && !String(args[0]).includes('/auth/')) location.href = '/login.html';
+  return res;
+};
+
+async function whoami() {
+  try {
+    const res = await fetch('/auth/me');
+    if (!res.ok) throw 0;
+    const { email } = await res.json();
+    $('#whoami').textContent = email;
+    $('#avatar').textContent = (email[0] || '?').toUpperCase();
+  } catch { location.href = '/login.html'; }
+}
+
+async function logout() {
+  await fetch('/auth/logout', { method: 'POST' });
+  location.href = '/login.html';
+}
+
+// ============ Toast ============
+function toast(title, desc, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'i';
+  el.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${esc(title)}</div>
+      ${desc ? `<div class="toast-desc">${esc(desc)}</div>` : ''}
+    </div>`;
+  $('#toasts').appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 200);
+  }, 3500);
+}
+
+// ============ Confirm dialog ============
+function confirmDialog({ title, desc, confirmText = 'Confirm', danger = false }) {
+  return new Promise((resolve) => {
+    const root = $('#modal-root');
+    root.innerHTML = `
+      <div class="backdrop" id="_confirm">
+        <div class="modal" style="max-width: 420px;">
+          <div class="modal-header">
+            <div>
+              <h2>${esc(title)}</h2>
+              ${desc ? `<p>${esc(desc)}</p>` : ''}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" data-act="cancel">Huỷ</button>
+            <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-act="ok">${esc(confirmText)}</button>
+          </div>
+        </div>
+      </div>`;
+    const close = (v) => { root.innerHTML = ''; resolve(v); };
+    $('#_confirm').addEventListener('click', (e) => {
+      if (e.target.id === '_confirm') close(false);
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'cancel') close(false);
+      if (act === 'ok') close(true);
+    });
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') { close(false); document.removeEventListener('keydown', esc); }
+    });
+  });
+}
+
+// ============ State ============
+const state = {
+  view: 'themes',      // 'themes' | 'trash'
+  themes: null,        // array or null (loading)
+  trash: null,
+  search: '',
+  statusFilter: 'all', // 'all' | 'published' | 'draft' | 'unpublished'
+  sortBy: 'newest',    // 'newest' | 'oldest' | 'order' | 'size' | 'name'
+};
+
+const NAV = [
+  { key: 'themes', label: 'Themes', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+  { key: 'trash', label: 'Recycle Bin', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' },
+];
+
+function renderNav() {
+  const el = $('#nav');
+  el.innerHTML = NAV.map(({ key, label, icon }) => `
+    <button class="nav-item ${state.view === key ? 'active' : ''}" data-view="${key}">
+      ${icon}
+      <span>${label}</span>
+      <span class="count" data-count="${key}">${(state[key] || []).length || ''}</span>
+    </button>`).join('');
+  $$('.nav-item', el).forEach((b) => b.onclick = () => switchView(b.dataset.view));
+}
+
+function switchView(v) {
+  state.view = v;
+  state.search = '';
+  renderNav();
+  render();
+  if (state[v] === null) loadView(v);
+}
+
+// ============ API ============
+const api = {
+  themes: (trash = false) =>
+    fetch('/admin/themes' + (trash ? '?trash=true' : '')).then(r => r.json()),
+  upload: (fd, onProgress) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/admin/upload');
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+    };
+    xhr.onload = () => {
+      let data; try { data = JSON.parse(xhr.responseText); } catch { data = {}; }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+      else reject(new Error(data.error || `HTTP ${xhr.status}`));
+    };
+    xhr.onerror = () => reject(new Error('network error'));
+    xhr.send(fd);
+  }),
+  patch: (id, body) => fetch('/admin/themes/' + id, {
+    method: 'PATCH', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then(r => r.json()),
+  softDelete: (id) => fetch('/admin/themes/' + id, { method: 'DELETE' }).then(r => r.json()),
+  restore: (id) => fetch('/admin/themes/' + id + '/restore', { method: 'POST' }).then(r => r.json()),
+  hardDelete: (id) => fetch('/admin/themes/' + id + '?permanent=true', { method: 'DELETE' }).then(r => r.json()),
+  replacePreview: (id, file, slot = 'main') => {
+    const fd = new FormData(); fd.append('preview', file);
+    return fetch('/admin/themes/' + id + '/preview?slot=' + encodeURIComponent(slot), {
+      method: 'POST', body: fd,
+    }).then(r => r.json());
+  },
+};
+
+async function loadView(v) {
+  try {
+    state[v] = await api.themes(v === 'trash');
+    renderNav();
+    render();
+  } catch (err) {
+    toast('Load failed', err.message, 'error');
+  }
+}
+
+function refresh() {
+  state.themes = null; state.trash = null;
+  render();
+  loadView(state.view);
+}
+
+// ============ Filter + sort ============
+function currentRows() {
+  const src = state[state.view] || [];
+  let rows = src.filter((r) => {
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      if (!r.id.toLowerCase().includes(q) && !r.name.toLowerCase().includes(q)) return false;
+    }
+    if (state.view === 'themes' && state.statusFilter !== 'all' && r.status !== state.statusFilter) return false;
+    return true;
+  });
+  const cmp = {
+    newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+    order:  (a, b) => a.order_index - b.order_index,
+    size:   (a, b) => Number(b.bundle_size) - Number(a.bundle_size),
+    name:   (a, b) => a.name.localeCompare(b.name),
+  }[state.sortBy] || (() => 0);
+  return rows.sort(cmp);
+}
+
+// ============ Render ============
+function render() {
+  const titles = { themes: 'Themes', trash: 'Recycle Bin' };
+  const subs = {
+    themes: 'Quản lý theme + upload lên Cloudflare R2',
+    trash: 'Theme đã xoá — 30 ngày sau tự purge vĩnh viễn',
+  };
+  $('#view-title').textContent = titles[state.view];
+  $('#view-sub').textContent = subs[state.view];
+  $('#upload-btn').style.display = state.view === 'themes' ? '' : 'none';
+
+  const src = state[state.view];
+  const content = $('#content');
+
+  if (src === null) { content.innerHTML = renderLoading(); return; }
+
+  const rows = currentRows();
+  const toolbar = renderToolbar();
+  const table = rows.length ? renderTable(rows) : renderEmpty();
+  const manifest = state.view === 'themes' ? renderManifestCard() : '';
+
+  content.innerHTML = toolbar + table + manifest;
+  bindToolbar();
+  bindTable();
+  if (state.view === 'themes') loadManifest();
+}
+
+function renderLoading() {
+  return `<div class="table-card"><table>
+    <thead><tr><th>Theme</th><th>Free</th><th>Order</th><th>Ver</th><th>Size</th><th>Price</th><th>Status</th><th></th></tr></thead>
+    <tbody>${Array.from({ length: 4 }).map(() => `
+      <tr class="skeleton-row">
+        <td><div class="skel wide"></div><div class="skel narrow" style="margin-top:6px;"></div></td>
+        <td><span class="skel narrow"></span></td>
+        <td><span class="skel narrow"></span></td>
+        <td><span class="skel narrow"></span></td>
+        <td><span class="skel narrow"></span></td>
+        <td><span class="skel narrow"></span></td>
+        <td></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function renderToolbar() {
+  const pills = ['all', 'published', 'draft', 'unpublished'];
+  const pillLabels = { all: 'All', published: 'Published', draft: 'Draft', unpublished: 'Unpublished' };
+  const filterPills = state.view === 'themes' ? `
+    <div class="filter-pills">
+      ${pills.map((p) => `
+        <button class="filter-pill ${state.statusFilter === p ? 'active' : ''}" data-filter="${p}">
+          ${pillLabels[p]}
+        </button>`).join('')}
+    </div>` : '';
+  return `
+    <div class="toolbar">
+      <input class="search-input" placeholder="Search theme name hoặc ID..." value="${esc(state.search)}" />
+      ${filterPills}
+      <select class="select" id="sort-select">
+        <option value="newest" ${state.sortBy === 'newest' ? 'selected' : ''}>Newest first</option>
+        <option value="oldest" ${state.sortBy === 'oldest' ? 'selected' : ''}>Oldest first</option>
+        <option value="order"  ${state.sortBy === 'order'  ? 'selected' : ''}>Order (asc)</option>
+        <option value="size"   ${state.sortBy === 'size'   ? 'selected' : ''}>Size (largest)</option>
+        <option value="name"   ${state.sortBy === 'name'   ? 'selected' : ''}>Name (A-Z)</option>
+      </select>
+    </div>`;
+}
+
+function bindToolbar() {
+  const search = $('.search-input');
+  if (search) search.oninput = (e) => { state.search = e.target.value; renderRowsOnly(); };
+  $$('.filter-pill').forEach((b) => b.onclick = () => {
+    state.statusFilter = b.dataset.filter; render();
+  });
+  const sort = $('#sort-select');
+  if (sort) sort.onchange = (e) => { state.sortBy = e.target.value; renderRowsOnly(); };
+}
+
+function renderRowsOnly() {
+  // Re-render just the table + manifest section (leave toolbar intact for input focus).
+  const rows = currentRows();
+  const container = $('.table-card, .empty');
+  if (container) {
+    const html = rows.length ? renderTable(rows) : renderEmpty();
+    container.outerHTML = html;
+    bindTable();
+  }
+}
+
+function renderEmpty() {
+  const isTrash = state.view === 'trash';
+  return `
+    <div class="empty">
+      <div class="empty-icon">
+        ${isTrash
+          ? '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>'
+          : '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'}
+      </div>
+      <h3>${isTrash ? 'Recycle bin trống' : (state.search || state.statusFilter !== 'all' ? 'Không có kết quả' : 'Chưa có theme nào')}</h3>
+      <p>${isTrash ? 'Theme bị xoá sẽ hiện ở đây trong 30 ngày.' : (state.search || state.statusFilter !== 'all' ? 'Thử đổi filter hoặc từ khoá search.' : 'Upload theme đầu tiên để bắt đầu.')}</p>
+      ${!isTrash && !state.search && state.statusFilter === 'all'
+        ? '<button class="btn btn-primary" onclick="openUploadModal()">Upload theme</button>' : ''}
+    </div>`;
+}
+
+function renderTable(rows) {
+  const isTrash = state.view === 'trash';
+  return `
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Theme</th>
+            <th>Free</th>
+            <th>Order</th>
+            <th>Ver</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>${isTrash ? 'Deleted' : 'Status'}</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows.map((r) => renderRow(r, isTrash)).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+function previewUrl(row) {
+  return row.preview_url || null;
+}
+
+function renderRow(r, isTrash) {
+  const pv = previewUrl(r);
+  const freeChip = isTrash
+    ? `<span class="chip ${r.is_free ? 'chip-free' : 'chip-paid'}">${r.is_free ? 'FREE' : 'PAID'}</span>`
+    : `<button class="chip chip-btn ${r.is_free ? 'chip-free' : 'chip-paid'}" data-act="toggle-free" data-id="${esc(r.id)}">${r.is_free ? 'FREE' : 'PAID'}</button>`;
+  const statusCell = isTrash
+    ? `<span class="cell-meta" style="font-size:12px;color:var(--text-2);">${esc(fmtDate(r.deleted_at))}</span>`
+    : `<select class="status-select" data-act="status" data-id="${esc(r.id)}">
+        <option value="published" ${r.status === 'published' ? 'selected' : ''}>Published</option>
+        <option value="draft" ${r.status === 'draft' ? 'selected' : ''}>Draft</option>
+        <option value="unpublished" ${r.status === 'unpublished' ? 'selected' : ''}>Unpublished</option>
+       </select>`;
+  const actions = isTrash ? `
+    <button class="btn btn-secondary btn-sm" data-act="restore" data-id="${esc(r.id)}">Restore</button>
+    <button class="btn btn-danger btn-sm" data-act="hard-delete" data-id="${esc(r.id)}">Xoá vĩnh viễn</button>
+  ` : `
+    <div class="row-actions">
+      <button class="row-actions-btn" data-act="menu" data-id="${esc(r.id)}">⋯</button>
+      <div class="row-menu" data-menu="${esc(r.id)}">
+        <button data-act="rename" data-id="${esc(r.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Sửa tên</button>
+        <button data-act="replace-bundle" data-id="${esc(r.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Đổi bundle</button>
+        <hr>
+        <button data-act="copy-bundle" data-id="${esc(r.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy bundle URL</button>
+        <hr>
+        <button class="danger" data-act="soft-delete" data-id="${esc(r.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Move to trash</button>
+      </div>
+    </div>
+  `;
+  return `
+    <tr data-id="${esc(r.id)}">
+      <td class="thumb-cell">
+        <div class="thumb">
+          ${pv ? `<img src="${esc(pv)}" alt="" loading="lazy" onerror="this.style.display='none'"/>` : esc(r.id.slice(0, 3).toUpperCase())}
+        </div>
+      </td>
+      <td>
+        <div class="cell-name">${esc(r.name)}</div>
+        <div class="cell-id">${esc(r.id)}</div>
+      </td>
+      <td>${freeChip}</td>
+      <td>${isTrash
+        ? `<span class="cell-mono">${esc(r.order_index)}</span>`
+        : `<input class="order-input" type="number" value="${esc(r.order_index)}" data-act="order" data-id="${esc(r.id)}" />`}</td>
+      <td><span class="cell-mono">v${esc(r.bundle_version)}</span></td>
+      <td><span class="cell-mono">${esc(fmtBytes(r.bundle_size))}</span></td>
+      <td><span class="cell-mono">${esc(r.price_coins ?? 0)} 🪙</span></td>
+      <td>${statusCell}</td>
+      <td style="text-align:right;">${actions}</td>
+    </tr>`;
+}
+
+function bindTable() {
+  $$('[data-act]').forEach((el) => {
+    const act = el.dataset.act, id = el.dataset.id;
+    if (act === 'toggle-free')   el.onclick  = () => togglePaid(id);
+    if (act === 'status')        el.onchange = (e) => setStatus(id, e.target.value);
+    if (act === 'order')         el.onchange = (e) => setOrder(id, e.target.value);
+    if (act === 'rename')        el.onclick  = () => openRenameModal(id);
+    // replace-preview removed — previews are extracted from the zip on upload.
+    if (act === 'replace-bundle')  el.onclick = () => pickAndReplaceBundle(id);
+    if (act === 'copy-bundle')   el.onclick  = () => copyBundleUrl(id);
+    if (act === 'soft-delete')   el.onclick  = () => softDelete(id);
+    if (act === 'restore')       el.onclick  = () => restore(id);
+    if (act === 'hard-delete')   el.onclick  = () => hardDelete(id);
+    if (act === 'menu')          el.onclick  = (e) => toggleMenu(id, e);
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[data-act="menu"]')) {
+    $$('.row-menu.open').forEach((m) => m.classList.remove('open'));
+  }
+});
+function toggleMenu(id, e) {
+  e.stopPropagation();
+  const menu = $(`[data-menu="${CSS.escape(id)}"]`);
+  const wasOpen = menu.classList.contains('open');
+  $$('.row-menu.open').forEach((m) => m.classList.remove('open'));
+  if (!wasOpen) menu.classList.add('open');
+}
+
+// ============ Actions ============
+function findRow(id) {
+  return (state.themes || []).find(r => r.id === id) || (state.trash || []).find(r => r.id === id);
+}
+
+async function setStatus(id, status) {
+  try { await api.patch(id, { status }); toast('Đã đổi status', `${id} → ${status}`, 'success'); await loadView('themes'); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+async function togglePaid(id) {
+  const row = findRow(id);
+  const next = !row.is_free;
+  try { await api.patch(id, { isFree: next }); toast('Đã cập nhật', `${id} → ${next ? 'FREE' : 'PAID'}`, 'success'); row.is_free = next; renderRowsOnly(); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+async function setOrder(id, v) {
+  try { await api.patch(id, { order: parseInt(v, 10) }); toast('Đã cập nhật order', id, 'success'); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+
+async function softDelete(id) {
+  const ok = await confirmDialog({
+    title: `Chuyển "${id}" vào Recycle Bin?`,
+    desc: 'Theme sẽ ẩn khỏi /manifest. Có thể restore trong 30 ngày.',
+    confirmText: 'Xoá', danger: true,
+  });
+  if (!ok) return;
+  try { await api.softDelete(id); toast('Đã xoá', id, 'success'); refresh(); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+async function restore(id) {
+  try { await api.restore(id); toast('Đã restore', id, 'success'); refresh(); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+async function hardDelete(id) {
+  const ok = await confirmDialog({
+    title: `Xoá vĩnh viễn "${id}"?`,
+    desc: 'Xoá TẤT CẢ version khỏi R2 + row DB. KHÔNG recover được.',
+    confirmText: 'Xoá vĩnh viễn', danger: true,
+  });
+  if (!ok) return;
+  try { await api.hardDelete(id); toast('Đã xoá vĩnh viễn', id, 'success'); refresh(); }
+  catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+
+async function copyBundleUrl(id) {
+  const row = findRow(id);
+  const url = row.bundle_url;
+  await navigator.clipboard.writeText(url);
+  toast('Đã copy', url, 'success');
+}
+
+function pickFile(accept) {
+  return new Promise((resolve) => {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = accept;
+    inp.onchange = () => resolve(inp.files[0] || null);
+    inp.click();
+  });
+}
+
+async function pickAndReplaceBundle(id) {
+  const file = await pickFile('.zip');
+  if (!file) return;
+  const row = findRow(id);
+  const fd = new FormData();
+  fd.append('id', row.id);
+  fd.append('name', row.name);
+  fd.append('isFree', String(row.is_free));
+  fd.append('order', String(row.order_index));
+  fd.append('status', row.status);
+  fd.append('minAppVersion', row.min_app_version);
+  fd.append('bundle', file);
+  try {
+    await api.upload(fd);
+    toast('Bundle đã cập nhật', `${id} → v${row.bundle_version + 1}`, 'success'); refresh();
+  } catch (e) { toast('Lỗi upload', e.message, 'error'); }
+}
+
+async function openRenameModal(id) {
+  const row = findRow(id);
+  const newName = await openInputModal({
+    title: 'Đổi tên theme',
+    label: 'Tên hiển thị',
+    value: row.name,
+    confirmText: 'Lưu',
+  });
+  if (!newName || newName === row.name) return;
+  try {
+    await api.patch(id, { name: newName });
+    toast('Đã đổi tên', id, 'success'); refresh();
+  } catch (e) { toast('Lỗi', e.message, 'error'); }
+}
+
+function openInputModal({ title, label, value = '', confirmText = 'OK' }) {
+  return new Promise((resolve) => {
+    const root = $('#modal-root');
+    root.innerHTML = `
+      <div class="backdrop" id="_input">
+        <div class="modal" style="max-width: 420px;">
+          <div class="modal-header"><h2>${esc(title)}</h2></div>
+          <div class="modal-body">
+            <div class="form-field">
+              <label>${esc(label)}</label>
+              <input type="text" id="_input_val" value="${esc(value)}" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" data-act="cancel">Huỷ</button>
+            <button class="btn btn-primary" data-act="ok">${esc(confirmText)}</button>
+          </div>
+        </div>
+      </div>`;
+    const input = $('#_input_val'); input.focus(); input.select();
+    const close = (v) => { root.innerHTML = ''; resolve(v); };
+    $('#_input').addEventListener('click', (e) => {
+      if (e.target.id === '_input') close(null);
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'cancel') close(null);
+      if (act === 'ok') close(input.value.trim());
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') close(input.value.trim());
+      if (e.key === 'Escape') close(null);
+    });
+  });
+}
+
+// ============ Upload modal ============
+function openUploadModal() {
+  const root = $('#modal-root');
+  root.innerHTML = `
+    <div class="backdrop" id="_upload">
+      <div class="modal" style="max-width: 620px;">
+        <div class="modal-header">
+          <div>
+            <h2>Upload theme</h2>
+            <p>File .zip sẽ được push lên Cloudflare R2 + metadata lưu Postgres.</p>
+          </div>
+        </div>
+        <div class="modal-body">
+          <form id="upload-form">
+            <div class="form-row">
+              <div class="form-field">
+                <label>Tên hiển thị *</label>
+                <input type="text" name="name" required placeholder="Dragon Ball" />
+              </div>
+              <div class="form-field">
+                <label>Theme ID (auto-slug)</label>
+                <input type="text" name="id" required pattern="[a-z0-9_]+" class="locked" readonly />
+                <span class="hint">tự sinh từ Tên. Regex: [a-z0-9_]+</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Free?</label>
+                <select name="isFree">
+                  <option value="false">Locked (rewarded ad)</option>
+                  <option value="true">Free</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Order (thấp = ưu tiên)</label>
+                <input type="number" name="order" value="999" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Giá coin (0 = free)</label>
+                <input type="number" name="priceCoins" min="0" max="1000" value="0" />
+                <span class="hint">Số coin user cần trả để unlock. Wallpaper KHÔNG áp dụng — chỉ dùng cho icons/widgets/bundle apply.</span>
+              </div>
+              <div class="form-field">
+                <label>&nbsp;</label>
+                <div style="height: 40px;"></div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Bundle .zip * (≤50MB)</label>
+                <label class="file-drop" data-drop="bundle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div class="name">Chọn hoặc kéo file zip vào đây</div>
+                  <div class="meta" id="bundle-meta">chưa chọn</div>
+                  <input type="file" name="bundle" accept=".zip" required />
+                </label>
+                <span class="hint">
+                  Server tự đọc 4 preview từ zip theo tên chuẩn ở root:
+                  <code>preview.webp</code>, <code>preview_wallpaper.webp</code>,
+                  <code>preview_icons.webp</code>, <code>preview_widgets.webp</code>
+                  (chấp nhận .png / .jpg / .jpeg / .gif thay .webp).
+                  File nào thiếu → theme sẽ không xuất hiện ở tab tương ứng.
+                </span>
+              </div>
+              <div class="form-field">
+                <label>Status</label>
+                <select name="status">
+                  <option value="published">Published (visible to app)</option>
+                  <option value="draft">Draft (admin only)</option>
+                </select>
+              </div>
+            </div>
+            <div class="progress" id="upload-progress"><div class="progress-bar"></div></div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-act="cancel">Huỷ</button>
+          <button class="btn btn-primary" id="upload-submit">
+            <span class="label">Upload</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  const form = $('#upload-form');
+  form.name.oninput = () => { form.id.value = slugify(form.name.value); };
+  form.bundle.onchange = () => {
+    const f = form.bundle.files[0];
+    $('#bundle-meta').textContent = f ? `${f.name} · ${fmtBytes(f.size)}` : 'chưa chọn';
+    $('[data-drop="bundle"]').classList.toggle('has-file', !!f);
+  };
+  // Preview file inputs removed — server extracts them from the zip by convention.
+  $('#_upload').addEventListener('click', (e) => {
+    if (e.target.id === '_upload') closeModal();
+    if (e.target.closest('[data-act="cancel"]')) closeModal();
+  });
+  $('#upload-submit').onclick = async () => {
+    if (!form.reportValidity()) return;
+    const fd = new FormData(form);
+    const btn = $('#upload-submit');
+    const progress = $('#upload-progress');
+    const bar = $('#upload-progress .progress-bar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Đang upload…';
+    progress.classList.add('active');
+    try {
+      const data = await api.upload(fd, (p) => { bar.style.width = (p * 100).toFixed(0) + '%'; });
+      toast('Upload thành công', `${data.id} · v${data.bundleVersion} · ${fmtBytes(data.bundleSize)}`, 'success');
+      closeModal();
+      refresh();
+    } catch (err) {
+      toast('Upload lỗi', err.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="label">Upload</span>';
+      progress.classList.remove('active');
+    }
+  };
+}
+
+function closeModal() { $('#modal-root').innerHTML = ''; }
+
+// ============ Manifest debug card ============
+function renderManifestCard() {
+  return `
+    <div class="manifest-card">
+      <h3>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Live /manifest response
+      </h3>
+      <pre id="manifest-out">loading…</pre>
+    </div>`;
+}
+
+async function loadManifest() {
+  const r = await fetch('/manifest');
+  const data = await r.json();
+  const out = $('#manifest-out');
+  if (out) out.textContent = JSON.stringify(data, null, 2);
+}
+
+// ============ Boot ============
+(async () => {
+  await whoami();
+  renderNav();
+  render();
+  await loadView('themes');
+  await loadView('trash');
+})();
+</script>
+</body>
+</html>

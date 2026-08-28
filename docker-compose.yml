@@ -1,0 +1,56 @@
+# Default target: the API only. Postgres and R2 are external services
+# (see .env). To run Postgres locally too, add the localdb overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.localdb.yml up -d
+
+services:
+  st13-api:
+    build:
+      context: .
+    image: st13-theme-api:latest
+    container_name: st13-theme-api
+    restart: unless-stopped
+    # PID 1 reaper so SIGTERM reaches node and `down` is instant, not a 10s kill.
+    init: true
+
+    env_file:
+      - .env
+    environment:
+      # Pinned so the container port stays 8787 whatever PORT says in .env;
+      # the host-side port is chosen by HOST_PORT below.
+      PORT: 8787
+
+    ports:
+      - "${HOST_PORT:-8787}:8787"
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+    # Nothing is written to disk: multer buffers in memory, objects go to R2.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app_db_net
+
+networks:
+  app_db_net:
+    external: true
