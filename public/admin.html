@@ -597,9 +597,10 @@ function confirmDialog({ title, desc, confirmText = 'Confirm', danger = false })
 
 // ============ State ============
 const state = {
-  view: 'themes',      // 'themes' | 'trash'
+  view: 'themes',      // 'themes' | 'coin' | 'trash'
   themes: null,        // array or null (loading)
   trash: null,
+  coin: null,          // {dailyCheckinRewards, watchAdRewardAmount, ...} or null (loading)
   search: '',
   statusFilter: 'all', // 'all' | 'published' | 'draft' | 'unpublished'
   sortBy: 'newest',    // 'newest' | 'oldest' | 'order' | 'size' | 'name'
@@ -607,6 +608,7 @@ const state = {
 
 const NAV = [
   { key: 'themes', label: 'Themes', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+  { key: 'coin', label: 'Coin Config', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M9 9c0-1.1 1.3-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 1.3 2 3 2 3-.9 3-2"/><path d="M12 6v1M12 17v1"/></svg>' },
   { key: 'trash', label: 'Recycle Bin', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' },
 ];
 
@@ -660,11 +662,17 @@ const api = {
       method: 'POST', body: fd,
     }).then(r => r.json());
   },
+  getCoinConfig:  () => fetch('/admin/coin-config').then(r => r.json()),
+  saveCoinConfig: (body) => fetch('/admin/coin-config', {
+    method: 'PUT', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then(async (r) => ({ ok: r.ok, status: r.status, data: await r.json() })),
 };
 
 async function loadView(v) {
   try {
-    state[v] = await api.themes(v === 'trash');
+    if (v === 'coin') state.coin = await api.getCoinConfig();
+    else              state[v]   = await api.themes(v === 'trash');
     renderNav();
     render();
   } catch (err) {
@@ -673,7 +681,7 @@ async function loadView(v) {
 }
 
 function refresh() {
-  state.themes = null; state.trash = null;
+  state.themes = null; state.trash = null; state.coin = null;
   render();
   loadView(state.view);
 }
@@ -701,9 +709,10 @@ function currentRows() {
 
 // ============ Render ============
 function render() {
-  const titles = { themes: 'Themes', trash: 'Recycle Bin' };
+  const titles = { themes: 'Themes', coin: 'Coin Config', trash: 'Recycle Bin' };
   const subs = {
     themes: 'Quản lý theme + upload lên Cloudflare R2',
+    coin: 'Chỉnh số coin — daily check-in, watch ad, notif bonus, onboarding grant',
     trash: 'Theme đã xoá — 30 ngày sau tự purge vĩnh viễn',
   };
   $('#view-title').textContent = titles[state.view];
@@ -715,6 +724,12 @@ function render() {
 
   if (src === null) { content.innerHTML = renderLoading(); return; }
 
+  if (state.view === 'coin') {
+    content.innerHTML = renderCoinConfig(src);
+    bindCoinConfig();
+    return;
+  }
+
   const rows = currentRows();
   const toolbar = renderToolbar();
   const table = rows.length ? renderTable(rows) : renderEmpty();
@@ -724,6 +739,136 @@ function render() {
   bindToolbar();
   bindTable();
   if (state.view === 'themes') loadManifest();
+}
+
+// ============ Coin Config view ============
+function renderCoinConfig(cfg) {
+  const rewards = Array.isArray(cfg.dailyCheckinRewards) ? cfg.dailyCheckinRewards : [];
+  const rewardInputs = rewards.map((v, i) => `
+    <div class="form-field" style="min-width: 90px;">
+      <label>Day ${i + 1}</label>
+      <input type="number" min="0" max="10000" step="1" data-reward-day="${i}" value="${esc(v)}" />
+    </div>`).join('');
+  const updated = cfg.updatedAt
+    ? `Cập nhật lần cuối: ${fmtDate(cfg.updatedAt)}${cfg.updatedBy ? ' bởi ' + esc(cfg.updatedBy) : ''}`
+    : 'Chưa từng cập nhật';
+  return `
+    <div class="table-card" style="padding: 24px;">
+      <form id="coin-config-form">
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; font-size: 13px; color: var(--text); display: block; margin-bottom: 6px;">
+            Daily check-in rewards
+          </label>
+          <p class="hint" style="margin-bottom: 12px;">
+            Chu kỳ ${rewards.length} ngày, lặp lại vô hạn. Day 1 = ngày đầu tiên user check-in.
+          </p>
+          <div id="rewards-grid" style="display: flex; flex-wrap: wrap; gap: 10px;">
+            ${rewardInputs}
+          </div>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button type="button" class="btn btn-ghost" id="reward-add" ${rewards.length >= 30 ? 'disabled' : ''}>+ Thêm ngày</button>
+            <button type="button" class="btn btn-ghost" id="reward-remove" ${rewards.length <= 1 ? 'disabled' : ''}>− Bỏ ngày cuối</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Watch ad reward amount</label>
+            <input type="number" name="watchAdRewardAmount" min="0" max="10000" value="${esc(cfg.watchAdRewardAmount)}" />
+            <span class="hint">Số coin thưởng cho mỗi rewarded ad hoàn tất.</span>
+          </div>
+          <div class="form-field">
+            <label>Watch ad daily cap</label>
+            <input type="number" name="watchAdDailyCap" min="0" max="100" value="${esc(cfg.watchAdDailyCap)}" />
+            <span class="hint">Số lần user được xem rewarded ad tối đa mỗi ngày.</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Notification bonus amount</label>
+            <input type="number" name="notifBonusAmount" min="0" max="100000" value="${esc(cfg.notifBonusAmount)}" />
+            <span class="hint">Coin thưởng 1-lần khi user bật quyền notification.</span>
+          </div>
+          <div class="form-field">
+            <label>Initial coin grant</label>
+            <input type="number" name="initialCoinGrant" min="0" max="100000" value="${esc(cfg.initialCoinGrant)}" />
+            <span class="hint">Coin free cho user mới cài (áp dụng ở /coin/init).</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <span class="hint">${updated}</span>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-ghost" id="coin-cancel">Huỷ thay đổi</button>
+            <button type="submit" class="btn btn-primary" id="coin-save">Lưu</button>
+          </div>
+        </div>
+      </form>
+    </div>`;
+}
+
+function bindCoinConfig() {
+  const form = $('#coin-config-form');
+  if (!form) return;
+
+  $('#reward-add').onclick = () => {
+    const grid = $('#rewards-grid');
+    const days = $$('input[data-reward-day]', grid);
+    if (days.length >= 30) return;
+    const nextIdx = days.length;
+    const wrap = document.createElement('div');
+    wrap.className = 'form-field';
+    wrap.style.minWidth = '90px';
+    wrap.innerHTML = `<label>Day ${nextIdx + 1}</label><input type="number" min="0" max="10000" step="1" data-reward-day="${nextIdx}" value="0" />`;
+    grid.appendChild(wrap);
+    $('#reward-remove').disabled = false;
+    $('#reward-add').disabled = nextIdx + 1 >= 30;
+  };
+
+  $('#reward-remove').onclick = () => {
+    const grid = $('#rewards-grid');
+    const days = $$('input[data-reward-day]', grid);
+    if (days.length <= 1) return;
+    days[days.length - 1].parentElement.remove();
+    $('#reward-add').disabled = false;
+    $('#reward-remove').disabled = days.length - 1 <= 1;
+  };
+
+  $('#coin-cancel').onclick = () => {
+    state.coin = null;
+    render();
+    loadView('coin');
+  };
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const dailyCheckinRewards = $$('input[data-reward-day]', form).map((i) => parseInt(i.value, 10));
+    const body = {
+      dailyCheckinRewards,
+      watchAdRewardAmount: parseInt(form.watchAdRewardAmount.value, 10),
+      watchAdDailyCap:     parseInt(form.watchAdDailyCap.value, 10),
+      notifBonusAmount:    parseInt(form.notifBonusAmount.value, 10),
+      initialCoinGrant:    parseInt(form.initialCoinGrant.value, 10),
+    };
+    const btn = $('#coin-save');
+    btn.disabled = true; btn.textContent = 'Đang lưu…';
+    try {
+      const res = await api.saveCoinConfig(body);
+      if (!res.ok) {
+        const msg = (res.data.details || []).join(', ') || res.data.error || `HTTP ${res.status}`;
+        toast('Lưu thất bại', msg, 'error');
+        return;
+      }
+      state.coin = res.data;
+      render();
+      toast('Đã lưu', 'Config mới có hiệu lực ngay cho mọi request coin.', 'success');
+    } catch (err) {
+      toast('Lưu thất bại', err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Lưu';
+    }
+  };
 }
 
 function renderLoading() {
